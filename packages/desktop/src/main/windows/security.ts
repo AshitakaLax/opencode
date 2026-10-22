@@ -1,5 +1,6 @@
 import type { BrowserWindow } from "electron"
 import { SidecarCredentials } from "../service/sidecar-credentials"
+import { isRemoteOnly } from "../desktop-policy"
 import { addRendererHeaders, hasHeader, upsertHeader } from "./headers"
 import { isRendererUrl } from "./scheme"
 
@@ -42,8 +43,12 @@ export function wireRendererHeaders(win: BrowserWindow) {
   // Only the renderer's own top-level frame is credentialed. Other content in this session (web views,
   // embedded pages) can reach the same loopback origin and must not inherit its access. Requests with
   // no frame, such as from a service worker, are not credentialed either; the renderer registers none.
+  //
+  // In remote-only mode the server URL is a remote host, not localhost, so the filter covers all URLs.
+  // SidecarCredentials.authorization() still only matches the stored server origin.
+  const urls = isRemoteOnly ? ["<all_urls>"] : ["http://127.0.0.1/*", "http://localhost/*"]
   win.webContents.session.webRequest.onBeforeSendHeaders(
-    { urls: ["http://127.0.0.1/*", "http://localhost/*"] },
+    { urls },
     (details, callback) => {
       const frame = details.frame
       const renderer = !!frame && frame.parent === null && isRendererUrl(frame.url)

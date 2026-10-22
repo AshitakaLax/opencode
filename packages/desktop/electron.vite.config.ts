@@ -62,6 +62,9 @@ export default defineConfig(({ command }) => {
       define: {
         // Local renderer/server mode still uses the dev application identity and updater policy.
         "import.meta.env.OPENCODE_CHANNEL": JSON.stringify(channel === "local" ? "dev" : channel),
+        "import.meta.env.OPENCODE_DESKTOP_REMOTE_ONLY": JSON.stringify(
+          process.env.OPENCODE_DESKTOP_REMOTE_ONLY === "1" ? "1" : undefined,
+        ),
       },
       build: {
         minify: command === "build",
@@ -125,6 +128,9 @@ const require = __cjs_mod__.createRequire(import.meta.url);
         "import.meta.env.VITE_OPENCODE_CHANNEL": JSON.stringify(channel),
         "import.meta.env.OPENCODE_TEST_ONBOARDING": JSON.stringify(
           command === "serve" && process.env.OPENCODE_TEST_ONBOARDING === "1",
+        ),
+        "import.meta.env.OPENCODE_DESKTOP_REMOTE_ONLY": JSON.stringify(
+          process.env.OPENCODE_DESKTOP_REMOTE_ONLY === "1" ? "1" : undefined,
         ),
       },
       plugins: [pickerPlugin(), appPlugin, initialChunk, sentry],

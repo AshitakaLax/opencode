@@ -5,6 +5,8 @@ import { cleanStages } from "./cli-stages"
 import { DesktopCli } from "./desktop-cli"
 import { SidecarCredentials } from "./sidecar-credentials"
 import { sidecarProbe } from "./sidecar-probe"
+import { isRemoteOnly } from "../desktop-policy"
+import { RemoteServer } from "./remote-server"
 
 export * as BackgroundService from "./background-service"
 
@@ -30,6 +32,19 @@ export const layer = Layer.effect(
 )
 
 const connect = Effect.fn("BackgroundService.connect")(function* (mode: "initial" | "reconnect") {
+  // In remote-only mode, never spawn a local server. Instead, use a persisted remote
+  // server connection. If none is found, fail so the renderer can show the connect/pair UI.
+  if (isRemoteOnly) {
+    const stored = RemoteServer.credentials()
+
+    if (!stored) throw new Error("RemoteOnlyNoServer")
+
+    SidecarCredentials.set(stored)
+    yield* Effect.logInfo("connected to remote server", { url: stored.url })
+
+    return stored
+  }
+
   yield* Effect.logInfo("starting v2 background service")
   const path = yield* Path.Path
   const desktopCli = yield* DesktopCli.Service

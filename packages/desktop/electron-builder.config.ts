@@ -120,10 +120,13 @@ const getBase = (appId: string): Configuration => {
       {
         from: "resources/",
         to: "",
-        filter: ["opencode-cli", "opencode-cli.exe", "opencode-cli.version"],
+        filter: !(process.env.OPENCODE_DESKTOP_REMOTE_ONLY === "1") ? ["opencode-cli", "opencode-cli.exe", "opencode-cli.version"] : [],
       },
     ],
     afterPack: async (context) => {
+      // Skip CLI verification in remote-only mode
+      if (process.env.OPENCODE_DESKTOP_REMOTE_ONLY === "1") return
+
       const arch = Arch[context.arch]
 
       // The --arm64 flag picks Electron while OPENCODE_CLI_TARGET picks the CLI and node-pty, so they can disagree.
@@ -235,32 +238,42 @@ export function getConfig() {
     }
 
     case "beta": {
+      const remoteOnly = process.env.OPENCODE_DESKTOP_REMOTE_ONLY === "1"
       return {
         ...base,
         appId,
         productName: "OpenCode Beta",
         protocols: { name: "OpenCode Beta", schemes: ["opencode"] },
-        publish: {
-          provider: "generic",
-          url: "https://opencode.ai/update/api/beta/desktop/opencode/",
-          channel: "latest",
-        },
+        ...(remoteOnly
+          ? {}
+          : {
+              publish: {
+                provider: "generic",
+                url: "https://opencode.ai/update/api/beta/desktop/opencode/",
+                channel: "latest",
+              },
+            }),
         deb: { fpm: [metainfoFpm(appId)] },
         rpm: { packageName: "opencode-beta", fpm: [rpmNoBuildIdLinksFpm, metainfoFpm(appId)] },
       }
     }
 
     case "prod": {
+      const remoteOnly = process.env.OPENCODE_DESKTOP_REMOTE_ONLY === "1"
       return {
         ...base,
         appId,
         productName: "OpenCode",
         protocols: { name: "OpenCode", schemes: ["opencode"] },
-        publish: {
-          provider: "generic",
-          url: "https://opencode.ai/update/api/latest/desktop/opencode/",
-          channel: "latest",
-        },
+        ...(remoteOnly
+          ? {}
+          : {
+              publish: {
+                provider: "generic",
+                url: "https://opencode.ai/update/api/latest/desktop/opencode/",
+                channel: "latest",
+              },
+            }),
         deb: { fpm: [metainfoFpm(appId), legacyDesktopEntryFpm] },
         rpm: { packageName: "opencode", fpm: [rpmNoBuildIdLinksFpm, metainfoFpm(appId), legacyDesktopEntryFpm] },
       }

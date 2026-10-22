@@ -5,9 +5,20 @@ const ServerReadyData = Schema.Struct({
   url: Schema.String,
 })
 
+const RemoteServer = Schema.Struct({
+  url: Schema.String,
+  password: Schema.optionalKey(Schema.String),
+})
+
 export const AppAwaitInitialization = Rpc.make("AppAwaitInitialization", { success: ServerReadyData })
 
 export const AppReconnectService = Rpc.make("AppReconnectService", { success: ServerReadyData })
+
+export const AppSetRemoteServer = Rpc.make("AppSetRemoteServer", {
+  payload: { server: RemoteServer },
+})
+
+export const AppClearRemoteServer = Rpc.make("AppClearRemoteServer")
 
 export const AppConsumeInitialDeepLinks = Rpc.make("AppConsumeInitialDeepLinks", {
   success: Schema.Array(Schema.String),
@@ -63,6 +74,8 @@ export const AppRelaunch = Rpc.make("AppRelaunch")
 export const AppRpcs = RpcGroup.make(
   AppAwaitInitialization,
   AppReconnectService,
+  AppSetRemoteServer,
+  AppClearRemoteServer,
   AppConsumeInitialDeepLinks,
   AppIsFirstLaunchOnboardingPending,
   AppFinishFirstLaunchOnboarding,

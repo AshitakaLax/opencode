@@ -6,6 +6,7 @@ import { Context, Effect, FileSystem, Layer, Logger, Option, Path, References, S
 import { homedir } from "node:os"
 import { VERSION } from "../constants"
 import { marks } from "../lifecycle/marks"
+import { allowTelemetry } from "../desktop-policy"
 
 const MAX_LOG_AGE_DAYS = 7
 
@@ -49,15 +50,19 @@ const serviceLayer = Layer.effect(
     const exportDebug = exportDebugLogsEffect(fs, path).pipe(Effect.orDie)
 
     return Service.of({
-      startNetwork: startNetLog(path).pipe(
-        Effect.catch((error) => Effect.logWarning("failed to start net log", { error })),
-      ),
+      startNetwork: allowTelemetry
+        ? startNetLog(path).pipe(
+            Effect.catch((error) => Effect.logWarning("failed to start net log", { error })),
+          )
+        : Effect.void,
       // Starting crashpad spawns its handler process, ~60 ms on the main thread, so the first window
-      // and its IPC port come first.
-      startCrashReporter: initCrashReporter(fs, path).pipe(
-        Effect.tap(() => Effect.sync(() => (marks.crash = Date.now()))),
-        Effect.catch((error) => Effect.logWarning("failed to start crash reporter", { error })),
-      ),
+      // and its IPC port come first. Remote-only mode disables crash reporting entirely.
+      startCrashReporter: allowTelemetry
+        ? initCrashReporter(fs, path).pipe(
+            Effect.tap(() => Effect.sync(() => (marks.crash = Date.now()))),
+            Effect.catch((error) => Effect.logWarning("failed to start crash reporter", { error })),
+          )
+        : Effect.void,
       exportDebug,
     })
   }),

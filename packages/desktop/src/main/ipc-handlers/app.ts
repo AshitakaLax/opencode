@@ -15,6 +15,8 @@ import { finishFirstLaunchOnboarding, isFirstLaunchOnboardingPending } from "../
 import { BackgroundService } from "../service/background-service"
 import { DesktopCli } from "../service/desktop-cli"
 import { SidecarCredentials } from "../service/sidecar-credentials"
+import { RemoteServer } from "../service/remote-server"
+import { isRemoteOnly } from "../desktop-policy"
 import { getLastFocusedWindow, setBackgroundColor } from "../windows"
 import { sender } from "./context"
 
@@ -30,6 +32,16 @@ export const appHandlers = AppRpcs.toLayer(
     return AppRpcs.of({
       AppAwaitInitialization: () => background.connection.pipe(Effect.map(SidecarCredentials.ready)),
       AppReconnectService: () => background.reconnect.pipe(Effect.map(SidecarCredentials.ready)),
+      AppSetRemoteServer: ({ server }) =>
+        Effect.sync(() => {
+          if (!isRemoteOnly) return
+          RemoteServer.save({ url: server.url, password: server.password ?? null })
+        }),
+      AppClearRemoteServer: () =>
+        Effect.sync(() => {
+          if (!isRemoteOnly) return
+          RemoteServer.clear()
+        }),
       AppConsumeInitialDeepLinks: () => Effect.sync(lifecycle.consumeInitialDeepLinks),
       AppIsFirstLaunchOnboardingPending: isFirstLaunchOnboardingPending,
       AppFinishFirstLaunchOnboarding: ({ createDefaultProject }) =>
