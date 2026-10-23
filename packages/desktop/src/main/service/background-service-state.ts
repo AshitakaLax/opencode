@@ -7,11 +7,11 @@ import type { SidecarCredentials } from "./sidecar-credentials"
 // is up, and the renderer loads its bundle while the CLI service is being resolved. Consumers
 // await the first outcome through `connection`, so nothing observes the service before it exists.
 export const make = Effect.fn("BackgroundServiceState.make")(function* (options: {
-  readonly initial: Effect.Effect<SidecarCredentials.Data, unknown>
-  readonly reconnect: Effect.Effect<SidecarCredentials.Data>
+  readonly initial: Effect.Effect<SidecarCredentials.Data | undefined, unknown>
+  readonly reconnect: Effect.Effect<SidecarCredentials.Data | undefined>
 }) {
   // Every Exit is an Effect, so the latest resolution replays directly for each consumer.
-  const current = yield* Ref.make<Exit.Exit<SidecarCredentials.Data, unknown> | undefined>(undefined)
+  const current = yield* Ref.make<Exit.Exit<SidecarCredentials.Data | undefined, unknown> | undefined>(undefined)
   const first = yield* Deferred.make<void>()
   yield* options.initial.pipe(
     Effect.exit,

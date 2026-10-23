@@ -18,8 +18,8 @@ export function get() {
 }
 
 /** What the renderer learns about the sidecar: its origin, never its credential. */
-export function ready(data: Data): ServerReadyData {
-  return { url: data.url }
+export function ready(data: Data | undefined): ServerReadyData | null {
+  return data ? { url: data.url } : null
 }
 
 /** The Basic credential for a request to the sidecar origin, or undefined for any other URL. */

@@ -1,3 +1,4 @@
+import { isRemoteOnly } from "../desktop-policy"
 import pkg from "../../../package.json"
 
 export function desktopVersion() {
@@ -5,8 +6,7 @@ export function desktopVersion() {
 }
 
 export async function initializeSentry(version: string) {
-  // In remote-only mode, no telemetry or crash reporting is sent.
-  if (import.meta.env.OPENCODE_DESKTOP_REMOTE_ONLY === "1" || !import.meta.env.VITE_SENTRY_DSN) return
+  if (isRemoteOnly || !import.meta.env.VITE_SENTRY_DSN) return
   const { init } = await import("@sentry/solid")
   init({
     dsn: import.meta.env.VITE_SENTRY_DSN,

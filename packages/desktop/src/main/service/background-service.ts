@@ -6,13 +6,12 @@ import { DesktopCli } from "./desktop-cli"
 import { SidecarCredentials } from "./sidecar-credentials"
 import { sidecarProbe } from "./sidecar-probe"
 import { isRemoteOnly } from "../desktop-policy"
-import { RemoteServer } from "./remote-server"
 
 export * as BackgroundService from "./background-service"
 
 export interface Interface {
-  readonly connection: Effect.Effect<SidecarCredentials.Data>
-  readonly reconnect: Effect.Effect<SidecarCredentials.Data>
+  readonly connection: Effect.Effect<SidecarCredentials.Data | undefined>
+  readonly reconnect: Effect.Effect<SidecarCredentials.Data | undefined>
 }
 
 export class Service extends Context.Service<Service, Interface>()("opencode/desktop/BackgroundService") {}
@@ -32,18 +31,9 @@ export const layer = Layer.effect(
 )
 
 const connect = Effect.fn("BackgroundService.connect")(function* (mode: "initial" | "reconnect") {
-  // In remote-only mode, never spawn a local server. Instead, use a persisted remote
-  // server connection. If none is found, fail so the renderer can show the connect/pair UI.
-  if (isRemoteOnly) {
-    const stored = RemoteServer.credentials()
-
-    if (!stored) throw new Error("RemoteOnlyNoServer")
-
-    SidecarCredentials.set(stored)
-    yield* Effect.logInfo("connected to remote server", { url: stored.url })
-
-    return stored
-  }
+  // Remote-only: never resolve the CLI or start a local server. The renderer gets no sidecar, so the
+  // app starts with an empty server list and shows its own connect screen.
+  if (isRemoteOnly) return undefined
 
   yield* Effect.logInfo("starting v2 background service")
   const path = yield* Path.Path

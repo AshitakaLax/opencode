@@ -23,8 +23,6 @@ const seeded = window.electron.storageSnapshot.then((snapshot) => new Map(Object
 export const api: ElectronAPI = {
   awaitInitialization: () => invoke("AppAwaitInitialization"),
   reconnectService: () => invoke("AppReconnectService"),
-  setRemoteServer: (server) => invoke("AppSetRemoteServer", { server }),
-  clearRemoteServer: () => invoke("AppClearRemoteServer"),
   consumeInitialDeepLinks: () => invoke("AppConsumeInitialDeepLinks").then(mutable),
   isFirstLaunchOnboardingPending: () => invoke("AppIsFirstLaunchOnboardingPending"),
   finishFirstLaunchOnboarding: (createDefaultProject) =>

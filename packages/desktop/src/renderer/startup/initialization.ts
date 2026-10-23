@@ -1,7 +1,6 @@
 import type { ElectronAPI } from "../api-types"
-import { isRemoteOnly } from "../desktop-policy"
 
-type SidecarData = Awaited<ReturnType<ElectronAPI["awaitInitialization"]>>
+type SidecarData = NonNullable<Awaited<ReturnType<ElectronAPI["awaitInitialization"]>>>
 
 export function initializationData<A>(state: (() => A | undefined) & { error: unknown }) {
   if (state.error !== undefined) throw markLocalServerStartup(state.error)
@@ -17,7 +16,7 @@ export function sidecarHttp(data: SidecarData) {
 
 export function createSidecarResolver(input: {
   api: Pick<ElectronAPI, "reconnectService">
-  current: () => SidecarData | undefined
+  current: () => SidecarData | null | undefined
   update: (data: SidecarData) => void
 }) {
   return async (signal: AbortSignal) => {
@@ -25,6 +24,8 @@ export function createSidecarResolver(input: {
     const next = await input.api.reconnectService()
 
     if (signal.aborted) throw signal.reason
+
+    if (!next) throw new Error("no local server is managed in remote-only mode")
 
     if (!sameSidecar(input.current(), next)) input.update(next)
 
@@ -41,11 +42,4 @@ function markLocalServerStartup(error: unknown) {
   Object.defineProperty(failure, "localServerStartup", { value: true })
 
   return failure
-}
-
-// In remote-only mode, a missing saved server is not a crash; it is the normal
-// initial state. Returns true when the error is the expected "no server" sentinel
-// from the remote-only BackgroundService.connect path.
-export function isNoServerConfigured(error: unknown): boolean {
-  return isRemoteOnly && error instanceof Error && error.message === "RemoteOnlyNoServer"
 }

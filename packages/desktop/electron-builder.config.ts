@@ -120,12 +120,12 @@ const getBase = (appId: string): Configuration => {
       {
         from: "resources/",
         to: "",
-        filter: !(process.env.OPENCODE_DESKTOP_REMOTE_ONLY === "1") ? ["opencode-cli", "opencode-cli.exe", "opencode-cli.version"] : [],
+        filter: process.env.OPENCODE_DESKTOP_REMOTE_ONLY === "0" ? ["opencode-cli", "opencode-cli.exe", "opencode-cli.version"] : [],
       },
     ],
     afterPack: async (context) => {
       // Skip CLI verification in remote-only mode
-      if (process.env.OPENCODE_DESKTOP_REMOTE_ONLY === "1") return
+      if (process.env.OPENCODE_DESKTOP_REMOTE_ONLY !== "0") return
 
       const arch = Arch[context.arch]
 
@@ -238,7 +238,7 @@ export function getConfig() {
     }
 
     case "beta": {
-      const remoteOnly = process.env.OPENCODE_DESKTOP_REMOTE_ONLY === "1"
+      const remoteOnly = process.env.OPENCODE_DESKTOP_REMOTE_ONLY !== "0"
       return {
         ...base,
         appId,
@@ -259,7 +259,7 @@ export function getConfig() {
     }
 
     case "prod": {
-      const remoteOnly = process.env.OPENCODE_DESKTOP_REMOTE_ONLY === "1"
+      const remoteOnly = process.env.OPENCODE_DESKTOP_REMOTE_ONLY !== "0"
       return {
         ...base,
         appId,

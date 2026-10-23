@@ -865,7 +865,7 @@ Each ID and description below is mirrored from the plan. The evidence template u
 
 | Date (UTC) | Task ID | Change / result | Evidence / commit | Author |
 |---|---|---|---|---|
-| — | — | No tasks started | — | — |
+| 2026-10-23 | 1.x, 2.1, 2.5 | Review found Phases 1-2 were not effective: the flag defaulted off and nothing set it, so installers still started the local server. The custom connect dialog never opened (resource error read once, non-reactively, and the thrown error was not preserved over RPC). Reworked: remote-only is now the default (opt out with `OPENCODE_DESKTOP_REMOTE_ONLY=0`); `AppAwaitInitialization`/`AppReconnectService` return `null` with no sidecar, so the app's existing `ConnectServerScreen` shows when the server list is empty. Removed `RemoteServer` storage, set/clear RPCs, the custom dialog, and the `<all_urls>` header widening. Static review only: `bun` unavailable in this environment, so tests/typecheck were NOT run. Phase 1-2 statuses should be treated as unverified until they are run and the installer is tested on Windows. | — | — |
 
 ## Release readiness
 

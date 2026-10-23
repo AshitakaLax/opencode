@@ -23,13 +23,11 @@ import type { ElectronAPI } from "./api-types"
 import { DesktopFirstLaunchOnboarding } from "./onboarding"
 import { createDesktopPlatform } from "./platform"
 import { bindDesktopMenu } from "./platform/menu"
-import { isRemoteOnly } from "./desktop-policy"
-import { createSidecarResolver, initializationData, isNoServerConfigured, sidecarHttp } from "./startup/initialization"
+import { createSidecarResolver, initializationData, sidecarHttp } from "./startup/initialization"
 import { preloadStoredLocale } from "./startup/locale"
 import { LoadingSplash } from "./startup/splash"
 import { getLastActiveUrl } from "./window/route-storage"
 import { DesktopMemoryRouter } from "./window/router"
-import { RemoteServerConnectDialog } from "./connect-dialog"
 
 const MigrationStatus = lazy(() => import("./migration-status").then((module) => ({ default: module.MigrationStatus })))
 
@@ -65,13 +63,6 @@ export function DesktopApp(props: { api: ElectronAPI; version: string }) {
   const platform = createDesktopPlatform(props.api, windowState)
   const [sidecar, { mutate: setSidecar }] = createResource(() => props.api.awaitInitialization())
   const [locale] = createResource(() => preloadStoredLocale(platform))
-  const [needsServerConnect, setNeedsServerConnect] = createStore({ open: false })
-
-  // In remote-only mode, a missing server is the expected initial state — show the
-  // connect screen instead of crashing.
-  if (isRemoteOnly && sidecar.error && isNoServerConfigured(sidecar.error)) {
-    setNeedsServerConnect("open", true)
-  }
 
   const [initialRoute] = createResource(
     () => !firstLaunch.loading && (firstLaunch() && initialUrl === "/" ? "/new-session" : initialUrl),
@@ -150,12 +141,7 @@ export function DesktopApp(props: { api: ElectronAPI; version: string }) {
           setStartup("themeReady", true)
         }}
       >
-        <Show when={isRemoteOnly && needsServerConnect.open}>
-          <RemoteServerConnectDialog api={props.api} onCancel={() => setNeedsServerConnect("open", false)} />
-        </Show>
-        <Show when={!isRemoteOnly || !needsServerConnect.open}>
-          <ReadyApp />
-        </Show>
+        <Show when={true}>{(_) => <ReadyApp />}</Show>
         <Show when={!firstLaunch.loading && startup.visible}>
           <div
             data-component="startup-overlay"
