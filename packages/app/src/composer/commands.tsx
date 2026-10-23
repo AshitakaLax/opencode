@@ -6,6 +6,7 @@ import { useDialog } from "@opencode/ui/context/dialog"
 import { useSessionLayout } from "@/session/session-layout"
 import { createSessionOwnership } from "@/session/session-ownership"
 import { useWorkspaceLocation } from "@/workspaces/location"
+import { usePlatform } from "@/runtime/platform/platform"
 
 const withCategory = (category: string) => {
   return (option: Omit<CommandOption, "category">): CommandOption => ({
@@ -19,6 +20,7 @@ export const useComposerCommands = (input: { model?: ModelSelection } = {}) => {
   const dialog = useDialog()
   const language = useLanguage()
   const local = useLocal()
+  const platform = usePlatform()
   const workspace = useWorkspaceLocation()
   const { sessionKey } = useSessionLayout()
   const sessionOwnership = createSessionOwnership(sessionKey)
@@ -55,13 +57,18 @@ export const useComposerCommands = (input: { model?: ModelSelection } = {}) => {
       keybind: "shift+mod+d",
       onSelect: () => model.variant.cycle(),
     }),
-    providerCommand({
-      id: "provider.connect",
-      title: language.t("command.provider.connect"),
-      description: language.t("command.provider.connect.description"),
-      slash: "connect",
-      onSelect: connectProvider,
-    }),
+    // A remote-only desktop uses the providers configured on its server, so `/connect` is not offered.
+    ...(platform.remoteOnly
+      ? []
+      : [
+          providerCommand({
+            id: "provider.connect",
+            title: language.t("command.provider.connect"),
+            description: language.t("command.provider.connect.description"),
+            slash: "connect",
+            onSelect: connectProvider,
+          }),
+        ]),
     agentCommand({
       id: "agent.cycle",
       title: language.t("command.agent.cycle"),

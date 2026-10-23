@@ -33,6 +33,8 @@ export default function PairingPage(props: {
   pairing: Accessor<Live<Client>>
 }) {
   const ctx = useExtension<typeof definition>()
+  // A remote-only desktop runs no server of its own, so there is nothing to expose remotely or keep awake for.
+  const unmanaged = ctx.desktop?.remoteOnly === true
   // The extension's dialogs close with it, so disabling pairing also stops the dialog's code polling.
   const dialogs = ctx.dialogs
   const queryClient = useQueryClient()
@@ -168,7 +170,7 @@ export default function PairingPage(props: {
                   <Switch
                     hideLabel
                     checked={change.isPending ? change.variables?.enabled === true : remote.data === true}
-                    disabled={!remote.isSuccess || change.isPending}
+                    disabled={unmanaged || !remote.isSuccess || change.isPending}
                     onChange={(enabled) => change.mutate({ enabled })}
                   >
                     {ctx.t("remote.title")}
@@ -180,7 +182,7 @@ export default function PairingPage(props: {
                   <Switch
                     hideLabel
                     checked={screenActive.isSuccess && screenActive.data}
-                    disabled={screenActive.isPending || !!screenActive.error || screenActivity.isPending}
+                    disabled={unmanaged || screenActive.isPending || !!screenActive.error || screenActivity.isPending}
                     onChange={(enabled) => screenActivity.mutate(enabled)}
                   >
                     {ctx.t("screenActive.title")}

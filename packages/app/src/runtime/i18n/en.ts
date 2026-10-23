@@ -130,6 +130,7 @@ export const dict = {
   "dialog.provider.accounts.remove": "Remove",
   "dialog.provider.accounts.options": "{{account}} options",
 
+  "provider.connect.disabled": "Connecting to public providers has been disabled.",
   "provider.connect.title": "Connect {{provider}}",
   "provider.connect.opencode.name": "OpenCode Console",
   "provider.connect.opencode.freeName": "OpenCode Free",

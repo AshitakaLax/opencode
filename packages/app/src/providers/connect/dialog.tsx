@@ -76,7 +76,7 @@ export function useProviderConnectController() {
   }
 }
 
-export const DialogConnectProvider: Component<{
+const ProviderConnectDialog: Component<{
   directory?: string
   /** Connects at the server's default Location instead of the current route's directory. */
   defaultLocation?: boolean
@@ -1612,6 +1612,32 @@ function ProviderConnection(props: {
           </Switch>
         </div>
       </div>
+    </Show>
+  )
+}
+
+type ProviderConnectDialogProps = Parameters<typeof ProviderConnectDialog>[0]
+
+// A remote-only desktop uses the providers configured on its server; connecting public providers is disabled.
+export const DialogConnectProvider: Component<ProviderConnectDialogProps> = (props) => {
+  const platform = usePlatform()
+  const language = useLanguage()
+
+  return (
+    <Show
+      when={!platform.remoteOnly}
+      fallback={
+        <Dialog fit>
+          <DialogHeader>
+            <DialogTitle>{language.t("command.provider.connect")}</DialogTitle>
+          </DialogHeader>
+          <DialogBody>
+            <p>{language.t("provider.connect.disabled")}</p>
+          </DialogBody>
+        </Dialog>
+      }
+    >
+      <ProviderConnectDialog {...props} />
     </Show>
   )
 }

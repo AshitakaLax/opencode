@@ -910,6 +910,8 @@ export interface Desktop {
   readonly os: OS
   /** This window's id. */
   readonly window: string
+  /** True when the desktop runs no local server and only connects to remote ones. */
+  readonly remoteOnly?: boolean
   /** The window's zoom factor; 1 is 100%. */
   zoom(): number
   /**
