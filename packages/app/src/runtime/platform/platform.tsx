@@ -32,6 +32,9 @@ export type FatalRendererErrorLog = {
 }
 
 type PlatformBase = {
+  /** The desktop runs no local server, so every server is remote and local-machine pickers must not be used */
+  remoteOnly?: boolean
+
   /** App version */
   version?: string
 

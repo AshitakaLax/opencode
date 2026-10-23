@@ -3,6 +3,7 @@ import { filter, firstBy, flat, groupBy, mapValues, pipe, uniqueBy, values } fro
 import { createSimpleContext } from "@opencode/ui/context"
 import { useProviders } from "@/providers/catalog/providers"
 import { useGlobal } from "@/runtime/server/runtime"
+import { usePlatform } from "@/runtime/platform/platform"
 
 export type ModelKey = { providerID: string; modelID: string }
 
@@ -22,6 +23,7 @@ export const isFreeModel = (model: { provider: { id: string }; cost?: { input: n
 
 const createModelsController = (directory: Accessor<string | undefined>) => {
   const providers = useProviders(() => directory())
+  const platform = usePlatform()
   const models = useGlobal().models
   const store = models.store
   const setStore = models.set
@@ -112,6 +114,9 @@ const createModelsController = (directory: Accessor<string | undefined>) => {
     if (state === "hide") return false
 
     if (state === "show") return true
+
+    // A remote-only desktop offers every model the connected server reports; the "latest per family" default is not applied.
+    if (platform.remoteOnly) return true
 
     if (latestSet().has(key)) return true
 

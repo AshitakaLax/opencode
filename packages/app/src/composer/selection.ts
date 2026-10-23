@@ -71,9 +71,10 @@ export function createComposerModelSelection(input: {
 
   const recent = () => models.recent.list().find(valid)
 
+  // The server's own default for a connected provider wins over an arbitrary first model.
   const fallback = () =>
     providers.connected().flatMap((provider) => {
-      const modelID = Object.values(provider.models)[0]?.id
+      const modelID = providers.default()[provider.id] ?? Object.values(provider.models)[0]?.id
 
       return modelID ? [{ providerID: provider.id, modelID }] : []
     })[0]

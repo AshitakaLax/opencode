@@ -187,10 +187,10 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
 
     const defaultModel = () => {
       for (const provider of providers.connected()) {
-        const first = Object.values(provider.models)[0]
+        const first = providers.default()[provider.id] ?? Object.values(provider.models)[0]?.id
 
         if (!first) continue
-        const model = { providerID: provider.id, modelID: first.id }
+        const model = { providerID: provider.id, modelID: first }
 
         if (validModel(model)) return model
       }

@@ -11,7 +11,7 @@ export function useRevealProject() {
   const platform = usePlatform()
 
   const available = (conn: ServerConnection.Any) =>
-    platform.platform === "desktop" && !!platform.revealPath && ServerConnection.local(conn)
+    platform.platform === "desktop" && !platform.remoteOnly && !!platform.revealPath && ServerConnection.local(conn)
 
   return {
     available,

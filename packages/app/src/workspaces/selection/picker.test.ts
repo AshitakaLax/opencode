@@ -26,5 +26,6 @@ describe("directoryPickerKind", () => {
       "server",
     )
     expect(directoryPickerKind("web", local)).toBe("server")
+    expect(directoryPickerKind("desktop", local, true)).toBe("server")
   })
 })

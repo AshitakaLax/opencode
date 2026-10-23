@@ -1,3 +1,4 @@
+import { isRemoteOnly } from "../desktop-policy"
 import type { Platform } from "@opencode/app/desktop"
 import type { ElectronAPI } from "../api-types"
 import { setPinchZoomEnabled, webviewZoom } from "../window/zoom"
@@ -22,6 +23,7 @@ export function createDesktopPlatform(api: ElectronAPI, windowState: DesktopWind
     os,
     version: windowState.version,
     windowID: windowState.id,
+    remoteOnly: isRemoteOnly,
     ...createDesktopFiles(api, os),
     ...createDesktopStorage(api),
     exportDebugLogs: () => api.exportDebugLogs(),

@@ -22,7 +22,7 @@ export function useDirectoryPicker() {
   const dialog = useDialog()
 
   return (input: DirectoryPickerInput) => {
-    if (directoryPickerKind(platform.platform, input.server) === "native" && platform.platform === "desktop") {
+    if (directoryPickerKind(platform.platform, input.server, platform.remoteOnly) === "native" && platform.platform === "desktop") {
       void platform.openDirectoryPickerDialog({ title: input.title, multiple: input.multiple }).then(input.onSelect)
 
       return

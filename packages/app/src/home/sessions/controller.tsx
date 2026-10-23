@@ -22,6 +22,7 @@ import { sessionTreeIDs } from "@/session/requests/session-request-tree"
 import { pathKey } from "@/workspaces/path-key"
 import { fetchSessionExport, saveSessionExport, sessionExportFilename } from "@/session/commands/export"
 import { usePlatform } from "@/runtime/platform/platform"
+import { useDirectoryPicker } from "@/workspaces/selection/picker"
 import { sessionLabel, sessionTitle } from "@/session/title"
 import { showToast } from "@/shell/notifications/toast"
 import { archiveHomeSession } from "./archive"
@@ -46,6 +47,7 @@ export function createHomeSessionsController(home: HomeController) {
   const command = useCommand()
   const dialog = useDialog()
   const language = useLanguage()
+  const pickDirectory = useDirectoryPicker()
   const platform = usePlatform()
   const queryClient = useQueryClient()
 
@@ -317,7 +319,8 @@ export function createHomeSessionsController(home: HomeController) {
     session: {
       showProjectName: () => !home.project.selected(),
       server: () => home.selection.value().server,
-      canCreate: () => !!home.project.newSession(),
+      // Without a project, creating a session first asks the focused server for one.
+      canCreate: () => !!home.project.newSession() || !!home.server.focused(),
       lookup: async (sessionID: string) => {
         const ctx = home.server.focusedContext()
 
@@ -333,7 +336,23 @@ export function createHomeSessionsController(home: HomeController) {
           resolveProject: ctx.projects.forSession,
         })[0]
       },
-      create: home.project.openNewSession,
+      create: () => {
+        if (home.project.newSession()) return home.project.openNewSession()
+        const conn = home.server.focused()
+
+        if (!conn) return
+        pickDirectory({
+          server: conn,
+          title: language.t("command.project.open"),
+          onSelect: (result) => {
+            const directory = Array.isArray(result) ? result[0] : result
+
+            if (!directory) return
+            home.project.add(conn, [directory])
+            home.project.openProjectNewSession(conn, directory)
+          },
+        })
+      },
       open: (session: SessionInfo, options?: OpenSessionOptions) => {
         const project = homeProjectForSession(session, home.project.list())
         const conn = home.server.focused()
